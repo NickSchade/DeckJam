@@ -50,6 +50,8 @@ public class Deck
 
     public void DrawCard()
     {
+        if (_library.Count == 0) return;
+
         CardData c = _library[0];
         _library.RemoveAt(0);
         _hand.Add(c);
@@ -103,7 +105,6 @@ public class Deck
 
     public void ShuffleDiscardIntoLibrary()
     {
-        Debug.Log("Shuffling discard into library");
         ShuffleStack(_discard);
         List<CardData> cards = new List<CardData>(_discard);
         foreach (CardData card in cards)

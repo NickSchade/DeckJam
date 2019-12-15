@@ -66,7 +66,6 @@ public class CardData
 
     public void EndTurnFromHand(Deck parentDeck)
     {
-        Debug.Log("Ending turn from hand");
         if (_currentHp > 0)
             parentDeck.DiscardCardFromHand(this);
         else

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems; // Required when using Event data.
+using System.Linq;
 
 public class CardObject : MonoBehaviour
 {
@@ -18,9 +19,25 @@ public class CardObject : MonoBehaviour
     public bool _locked = false;
 
     string _heartTxt = "<3";
-    string _initiativeTxt = "<";
+    string _initiativeTxt = ">";
     public static string _attackTxt = "*";
     
+    public void LockRequirements()
+    {
+        List<AbilityObject> abilities = GetComponentsInChildren<AbilityObject>().ToList();
+        foreach (AbilityObject ability in abilities)
+        {
+            for (int i = 0; i < ability._requirementSlots.Count; i++)
+            {
+                int val = ability._requirementSlots[i]._dice == null ? 0 : ability._requirementSlots[i]._dice._value;
+                ability._ability._requirements[i] = val;
+            }
+            List<DiceObject> diceObjects = ability.GetComponentsInChildren<DiceObject>().ToList();
+            foreach (DiceObject dice in diceObjects)
+                dice._locked = true;
+        }
+
+    }
 
     public void SetCard(GameManager gameManager, CardData data, CardSlot slot)
     {
@@ -39,7 +56,6 @@ public class CardObject : MonoBehaviour
     public void UpdateCard()
     {
         string txt = $"{_data._name} <br> {GetHpString()} <br> {GetInitiativeString()}";// {GetAbilitiesString()}";
-        Debug.Log(_data._name + "'s data is " + txt);
         _text.text = txt;
     }
     string GetHpString()

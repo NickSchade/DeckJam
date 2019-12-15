@@ -9,6 +9,8 @@ public class DiceSlotObject : MonoBehaviour
     public TMP_Text _text;
 
     public int _condition;
+    public DiceObject _dice;
+
 
     public void UpdateUi(int condition)
     {

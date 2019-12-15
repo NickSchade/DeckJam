@@ -10,17 +10,18 @@ public class AbilityObject : MonoBehaviour
     public RawImage _requirementsObject;
     public CardAbility _ability;
     public CardObject _parent;
+    public List<DiceSlotObject> _requirementSlots;
 
     public void SetAbility(CardObject parent, CardAbility ability)
     {
         _parent = parent;
         _ability = ability;
-        Debug.Log(_parent._data._name + "'s " + ability._name + " has " + ability._conditions.Count + " conditions");
+        _requirementSlots = new List<DiceSlotObject>();
         for (int i = 0; i < _ability._conditions.Count; i++)
         {
-            Debug.Log("Instantiating dice slot");
             DiceSlotObject diceSlot = Instantiate(_parent._gameManager._prefabDiceSlot, _requirementsObject.transform);
             diceSlot.UpdateUi(_ability._conditions[i]);
+            _requirementSlots.Add(diceSlot);
         }
     }
     public void UpdateUi()

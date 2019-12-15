@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
     public CardSlot _prefabCardSlot;
     public AbilityObject _prefabAbility;
     public DiceSlotObject _prefabDiceSlot;
+    public DiceObject _prefabDice;
+    
 
     // Scene Objects
     public CardTray _enemyTray;
@@ -18,6 +20,11 @@ public class GameManager : MonoBehaviour
     public CardTray _handTray;
     public DeckInfo _playerDeckInfo;
     public DeckInfo _enemyDeckInfo;
+    public DiceTray _diceTray;
+    public GameObject _GameScreen;
+    public GameObject _StartScreen;
+    public TutorialMessage _TutorialScreen;
+
 
     public Player _player;
     public Player _enemy;
@@ -28,7 +35,6 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         _phase = GamePhase.Unstarted;
-        BeginGame();
     }
 
     // Update is called once per frame
@@ -39,18 +45,59 @@ public class GameManager : MonoBehaviour
     }
 
 
-    public void BeginGame()
+    public void BeginProgram()
     {
         _phase = GamePhase.Sanctuary;
-        Debug.Log("Phase is " + _phase.ToString());
-        _player = new Player(Presets.StartingDeck(), 2, 1);
     }
 
-    public void BeginMatch()
+    public void BeginTestMatch()
     {
+        Player player = Presets.PlayerTestMatch();
+        Player enemy = Presets.EnemyTestMatch();
+
+        _StartScreen.gameObject.SetActive(false);
+
+        BeginMatch(player, enemy);
+    }
+
+    public void BeginTutorial1()
+    {
+        _player = Presets.PlayerTutorial1();
+        _enemy = Presets.EnemyTutorial1();
+
+        _TutorialScreen.SetText("Left Click to select & Right Click to place");
+    }
+    public void BeginTutorial2()
+    {
+        _player = Presets.PlayerTutorial2();
+        _enemy = Presets.EnemyTutorial2();
+
+        _TutorialScreen.SetText("Card Turn Order depends on Initiative " + CardObject.GetStringWithColor(">",Color.blue));
+    }
+    public void BeginTutorial3()
+    {
+        _player = Presets.PlayerTutorial3();
+        _enemy = Presets.EnemyTutorial3();
+
+        _TutorialScreen.SetText("Place Dice to activate card Abilities");
+    }
+    public void BeginTutorial4()
+    {
+        Player player = Presets.PlayerTutorial1();
+        Player enemy = Presets.EnemyTutorial1();
+
+        BeginMatch(player, enemy);
+    }
+
+    public void BeginMatch(Player player, Player enemy)
+    {
+        Debug.Log("Begin Match");
+        _player = player;
+        _enemy = enemy;
         _phase = GamePhase.Begin;
-        Debug.Log("Phase is " + _phase.ToString());
-        _enemy = new Player(Presets.GoblinDeck(), 2, 2);
+
+        _GameScreen.gameObject.SetActive(true);
+
         _enemyTray.SetSlots(_enemy._maxPlay);
         _playerTray.SetSlots(_player._maxPlay);
         _handTray.SetSlots(_player._maxHand);
@@ -76,6 +123,17 @@ public class GameManager : MonoBehaviour
             _enemy._deck.PlayCardFromHand(card);
 
         DisplayCards();
+
+        if (_player.CheckDefeat())
+        {
+            Debug.Log("You Lost!");
+            EndGame();
+        }
+        else if (_enemy.CheckDefeat())
+        {
+            Debug.Log("You won!");
+            EndGame();
+        }
     }
 
     void DestroyCardInSlot(CardSlot s)
@@ -87,14 +145,17 @@ public class GameManager : MonoBehaviour
         s._card = null;
     }
     
-
-    void DisplayCards()
+    void ClearCards()
     {
-        Debug.Log("Displaying Cards");
         List<CardTray> trays = new List<CardTray> { _playerTray, _enemyTray, _handTray };
         foreach (CardTray tray in trays)
             foreach (CardSlot slot in tray._slots)
                 DestroyCardInSlot(slot);
+    }
+
+    void DisplayCards()
+    {
+        ClearCards();
 
         foreach (CardData c in _player._deck._hand)
             _handTray.DispayCardInTray(c);
@@ -114,17 +175,45 @@ public class GameManager : MonoBehaviour
     void ProgressTurn()
     {
         if (_phase == GamePhase.Unstarted)
-            BeginGame();
+            BeginProgram();
         else if (_phase == GamePhase.Sanctuary)
-            BeginMatch();
+            BeginTestMatch();
         else if (_phase == GamePhase.Begin)
             DrawPhase();
         else if (_phase == GamePhase.Draw)
+            AssignDicePhase();
+        else if (_phase == GamePhase.AssignDice)
             CombatPhase();
         else if (_phase == GamePhase.Combat)
             CleanupPhase();
         else if (_phase == GamePhase.Cleanup)
             DrawPhase();
+    }
+
+    void AssignDicePhase()
+    {
+        if (_player._diceNumber == 0)
+            CombatPhase();
+        else
+        {
+            _phase = GamePhase.AssignDice;
+            List<CardTray> trays = new List<CardTray> { _playerTray, _handTray, _enemyTray };
+            foreach (CardTray tray in trays)
+                foreach (CardSlot slot in tray._slots)
+                    if (slot._card != null)
+                        slot._card._locked = true;
+
+            for (int i = 0; i < _player._diceNumber; i++)
+            {
+                DiceSlotObject slot = Instantiate(_prefabDiceSlot, _diceTray.transform);
+                DiceObject dice = Instantiate(_prefabDice, slot.transform);
+                dice._locked = false;
+                slot._dice = dice;
+                dice._slot = slot;
+                int r = Random.Range(1, 6);
+                dice.UpdateValue(r);
+            }
+        }
     }
 
     void CombatPhase()
@@ -133,17 +222,29 @@ public class GameManager : MonoBehaviour
         Debug.Log("Phase is " + _phase.ToString());
         List<CardObject> cards = GetInitiativeOrderedCards();
         foreach (CardObject card in cards)
+            card.LockRequirements();
+        
+        foreach (CardObject card in cards)
         {
             card._data.TakeTurn(card);
             card.UpdateCard();
         }
+
+        List<DiceSlotObject> slots = _diceTray.GetComponentsInChildren<DiceSlotObject>().ToList();
+        for (int i = 0; i < slots.Count; i++)
+            Destroy(slots[i].gameObject);
 
         
     }
     void CleanupPhase()
     {
         _phase = GamePhase.Cleanup;
-        Debug.Log("Phase is " + _phase.ToString());
+
+        List<CardTray> trays = new List<CardTray> { _playerTray, _handTray, _enemyTray };
+        foreach (CardTray tray in trays)
+            foreach (CardSlot slot in tray._slots)
+                if (slot._card != null)
+                    slot._card._locked = false;
 
         foreach (CardSlot s in _playerTray._slots)
             if (s._card != null)
@@ -158,8 +259,15 @@ public class GameManager : MonoBehaviour
                 s._card._data.EndTurnFromHand(_player._deck);
         
         DisplayCards();
+        DrawPhase();
+        
     }
-
+    public void EndGame()
+    {
+        ClearCards();
+        _GameScreen.gameObject.SetActive(false);
+        _StartScreen.gameObject.SetActive(true);
+    }
     
 
 
@@ -174,7 +282,7 @@ public class GameManager : MonoBehaviour
         List<CardObject> allCards = new List<CardObject>();
         allCards.AddRange(playerCards);
         allCards.AddRange(enemyCards);
-        allCards = allCards.OrderBy(x => x._data.GetInitiative()).ToList();
+        allCards = allCards.OrderByDescending(x => x._data.GetInitiative()).ToList();
         return allCards;
     }
 

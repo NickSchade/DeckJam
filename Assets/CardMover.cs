@@ -13,6 +13,8 @@ public class CardMover : MonoBehaviour
     
     void SelectCard(CardObject c)
     {
+        if (c._locked) return;
+
         if (_card != null)
             DeselectCard(_card);
 
