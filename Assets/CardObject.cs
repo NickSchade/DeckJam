@@ -8,20 +8,24 @@ using System.Linq;
 
 public class CardObject : MonoBehaviour
 {
-    public TMP_Text _text;
+    public TMP_Text _name;
+    public TMP_Text _hp;
+    public TMP_Text _initiative;
+
     public RawImage _highlight;
     public RawImage _cardFront;
 
     public GameManager _gameManager;
     public CardData _data;
     public CardSlot _slot;
+    public Dictionary<CardAbility, AbilityObject> _abilities = new Dictionary<CardAbility, AbilityObject>();
 
     public bool _locked = false;
 
     string _heartTxt = "<3";
     string _initiativeTxt = ">";
     public static string _attackTxt = "*";
-    
+
     public void LockRequirements()
     {
         List<AbilityObject> abilities = GetComponentsInChildren<AbilityObject>().ToList();
@@ -39,33 +43,49 @@ public class CardObject : MonoBehaviour
 
     }
 
+
+
+
     public void SetCard(GameManager gameManager, CardData data, CardSlot slot)
     {
         _gameManager = gameManager;
         _data = data;
         _slot = slot;
         UpdateCard();
-
+        UpdateAbilityUi();
+    }
+    public void UpdateCard()
+    {
+        _name.text = _data._name;
+        _hp.text = GetHpString();
+        _initiative.text = GetInitiativeString();
+    }
+    public void UpdateAbilityUi()
+    {
         foreach (CardAbility ability in _data._baseAbilities)
         {
             AbilityObject a = Instantiate(_gameManager._prefabAbility, _cardFront.transform);
             a.SetAbility(this, ability);
             a.UpdateUi();
+            _abilities[ability] = a;
         }
-    }
-    public void UpdateCard()
-    {
-        string txt = $"{_data._name} <br> {GetHpString()} <br> {GetInitiativeString()}";// {GetAbilitiesString()}";
-        _text.text = txt;
+        foreach (CardAbility ability in _data._slottedAbilities)
+        {
+            AbilitySlot slot = Instantiate(_gameManager._prefabAbilitySlot, _cardFront.transform);
+            if (ability != null)
+            {
+                AbilityObject a = Instantiate(_gameManager._prefabAbility, slot.transform);
+                a.SetAbility(this, ability);
+                a.UpdateUi();
+                _abilities[ability] = a;
+            }
+        }
     }
     string GetHpString()
     {
         List<string> listString = new List<string>();
         for (int i = 0; i < _data._baseHp; i++)
         {
-            if (i != 0 && i % 4 == 0)
-                listString.Add("<br>");
-
             Color color = i < _data._currentHp ? Color.red : Color.black;
             string heart = GetStringWithColor(_heartTxt, color);
             listString.Add(heart);
@@ -77,9 +97,6 @@ public class CardObject : MonoBehaviour
         List<string> listString = new List<string>();
         for (int i = 0; i < _data.GetInitiative(); i++)
         {
-            if (i != 0 && i % 4 == 0)
-                listString.Add("<br>");
-
             Color color = Color.blue;
             string arrow = GetStringWithColor(_initiativeTxt, color);
             listString.Add(arrow);

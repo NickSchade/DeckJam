@@ -109,7 +109,7 @@ public class DiceMover : MonoBehaviour
         DeselectDice(_dice);
         oldSlot._dice = null;
 
-        _gameManager.UpdateUi();
+        _gameManager._battle.UpdateUi();
     }
 
 

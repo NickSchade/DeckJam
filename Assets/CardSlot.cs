@@ -14,4 +14,13 @@ public class CardSlot : MonoBehaviour
         _name = name;
     }
 
+    public void DestroyCardInSlot()
+    {
+        if (_card == null)
+            return;
+
+        Destroy(_card.gameObject);
+        _card = null;
+    }
+
 }

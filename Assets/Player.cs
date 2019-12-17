@@ -24,7 +24,8 @@ public class Player
 
     public void DrawPhase()
     {
-        while (_deck._hand.Count < _maxHand)
+        int cardsToDraw = _maxHand - _deck._hand.Count;
+        for (int i = 0; i < cardsToDraw; i++)
         {
             if (_deck._library.Count == 0)
                 _deck.ShuffleDiscardIntoLibrary();

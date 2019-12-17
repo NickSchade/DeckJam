@@ -2,55 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum GamePhase { Unstarted, Sanctuary, Begin, Draw, AssignDice, Combat, Cleanup};
+public enum GamePhase { Unstarted, Sanctuary, Begin, Draw, AssignDice, Combat, Cleanup, CheckEndGame};
+public enum GameScreen { Battle, DeckManage}
 
 public static class Presets
 {
     const string _basicAttackName = "Basic";
     
-    public static Player PlayerTestMatch()
-    {
-        List<CardData> cards = new List<CardData> { Fighter(), ShieldBearer(), Militia() };
-        return new Player(new Deck(cards), 2, 1, 3);
-    }
-    public static Player EnemyTestMatch()
-    {
-        List<CardData> cards = new List<CardData>()
-        {
-            Goblin(),
-            FastGoblin(),
-            ToughGoblin(),
-            GoblinAssassin()
-        };
-        return new Player(new Deck(cards), 2, 2, 3);
-    }
-
-    public static CardData ShieldBearer()
-    {
-        Debug.Log("MAKING SHIELDBEARER");
-        return new CardData("ShieldBearer", Allegiance.Player, 1, 8, new List<CardAbility> {new CardAbility(_basicAttackName, 1, new List<int> { 1 }) });
-    }
-    public static CardData Fighter()
-    {
-        return new CardData("Fighter", Allegiance.Player, 2, 4, new List<CardAbility> { new CardAbility(_basicAttackName, 2) });
-    }
-    public static CardData Militia()
-    {
-        return new CardData("Militia", Allegiance.Player, 3, 4, new List<CardAbility> { new CardAbility(_basicAttackName, 1) });
-    }
-
-    public static CardData FastGoblin()
-    {
-        return new CardData("FastGoblin", Allegiance.Enemy, 3, 1, new List<CardAbility> { new CardAbility(_basicAttackName, 1) });
-    }
-    public static CardData ToughGoblin()
-    {
-        return new CardData("ToughGoblin", Allegiance.Enemy, 1, 3, new List<CardAbility> { new CardAbility(_basicAttackName, 1) });
-    }
-    public static CardData GoblinAssassin()
-    {
-        return new CardData("GoblinAssassin", Allegiance.Enemy, 1, 2, new List<CardAbility> { new CardAbility(_basicAttackName, 2) });
-    }
 
     // Tutorial 1 
     // "Left click to select, right click to move"
@@ -60,11 +18,11 @@ public static class Presets
     static int Tutorial1Dmg = 1;
     public static CardData Hiro()
     {
-        return new CardData("Hiro", Allegiance.Player, 2, Tutorial1Hp, new List<CardAbility> { new CardAbility("Dagger", Tutorial1Dmg) });
+        return new CardData("Hiro", Allegiance.Player, 2, Tutorial1Hp, new List<CardAbility> { new CardAbility("Dagger", Tutorial1Dmg) } , new CardAbility[0]);
     }
     public static CardData Rat()
     {
-        return new CardData("Rat", Allegiance.Enemy, 1, Tutorial1Hp, new List<CardAbility> { new CardAbility("Bite", Tutorial1Dmg) });
+        return new CardData("Rat", Allegiance.Enemy, 1, Tutorial1Hp, new List<CardAbility> { new CardAbility("Bite", Tutorial1Dmg) }, new CardAbility[0]);
     }
     public static Player PlayerTutorial1()
     {
@@ -84,15 +42,15 @@ public static class Presets
     // Teaches: Initiative Order, Wounding/Victory Condition, Rank
     public static CardData JustMike()
     {
-        return new CardData("Just Mike", Allegiance.Player, 2, 3, new List<CardAbility> { new CardAbility("Dagger", 1) });
+        return new CardData("Just Mike", Allegiance.Player, 2, 3, new List<CardAbility> { new CardAbility("Dagger", 1) }, new CardAbility[0]);
     }
     public static CardData FastMike()
     {
-        return new CardData("Fast Mike", Allegiance.Player, 3, 3, new List<CardAbility> { new CardAbility("Dagger", 1) });
+        return new CardData("Fast Mike", Allegiance.Player, 3, 3, new List<CardAbility> { new CardAbility("Dagger", 1) }, new CardAbility[0]);
     }
     public static CardData SlowMike()
     {
-        return new CardData("Slow Mike", Allegiance.Player, 1, 3, new List<CardAbility> { new CardAbility("Dagger", 1) });
+        return new CardData("Slow Mike", Allegiance.Player, 1, 3, new List<CardAbility> { new CardAbility("Dagger", 1) }, new CardAbility[0]);
     }
     public static Player PlayerTutorial2()
     {
@@ -102,23 +60,23 @@ public static class Presets
     public static Player EnemyTutorial2()
     {
         List<CardData> cards = new List<CardData> { Goblin(), Goblin(), Goblin(), Goblin(), Goblin(), Goblin() };
-        return new Player(new Deck(cards), 3, 3, 0);
+        return new Player(new Deck(cards), 4, 4, 0);
     }
 
     public static CardData Goblin()
     {
-        return new CardData("Goblin", Allegiance.Enemy, 2, 2, new List<CardAbility> { new CardAbility(_basicAttackName, 1) });
+        return new CardData("Goblin", Allegiance.Enemy, 2, 1, new List<CardAbility> { new CardAbility(_basicAttackName, 1) }, new CardAbility[0]);
     }
     // Tutorial 3
     // Barbarian vs Zombie
     // "Place Dice in ability slots to Trigger them"
     public static CardData Barbarian()
     {
-        return new CardData("Barbarian", Allegiance.Player, 2, 10, new List<CardAbility> { new CardAbility("Wild Swing", 3, new List<int> { 4 }) });
+        return new CardData("Barbarian", Allegiance.Player, 2, 10, new List<CardAbility> { new CardAbility("Axe", 3, new List<int> { 4 }) }, new CardAbility[0]);
     }
     public static CardData Zombie()
     {
-        return new CardData("Zombie", Allegiance.Enemy, 1, 4, new List<CardAbility> { new CardAbility("Lurch", 1) });
+        return new CardData("Zombie", Allegiance.Enemy, 1, 4, new List<CardAbility> { new CardAbility("Lurch", 1) }, new CardAbility[0]);
     }
     public static Player PlayerTutorial3()
     {
@@ -132,5 +90,51 @@ public static class Presets
 
     }
     
+    // Tutorial 4
+    // Deck Management
+    // "Between Battles, Slot new abilities into Cards
+    public static CardData Fighter()
+    {
+        return new CardData("Fighter", Allegiance.Player, 2, 10, new List<CardAbility> { new CardAbility("Swing", 3, new List<int> { 3 }) }, new CardAbility[1]);
+    }
+    public static CardData Ranger()
+    {
+        return new CardData("Ranger", Allegiance.Player, 3, 7, new List<CardAbility> { new CardAbility("Shoot", 1) }, new CardAbility[1]);
+    }
+    public static CardData Wizard()
+    {
+        return new CardData("Wizard", Allegiance.Player, 1, 3, new List<CardAbility> { new CardAbility("Bolt", 5, new List<int> { 4 }) }, new CardAbility[1]);
+    }
 
+    public static CardData Reaver()
+    {
+        return new CardData("Reaver", Allegiance.Enemy, 2, 10, new List<CardAbility> { new CardAbility("Swing", 3, new List<int> { 3 }) }, new CardAbility[1]);
+    }
+    public static CardData Spy()
+    {
+        return new CardData("Spy", Allegiance.Enemy, 3, 7, new List<CardAbility> { new CardAbility("Shoot", 1) }, new CardAbility[1]);
+    }
+    public static CardData Warlock()
+    {
+        return new CardData("Warlock", Allegiance.Enemy, 1, 3, new List<CardAbility> { new CardAbility("Bolt", 5, new List<int> { 4 }) }, new CardAbility[1]);
+    }
+    public static Player PlayerTutorial4()
+    {
+        List<CardData> cards = new List<CardData> { Fighter(), Ranger(), Wizard() };
+        return new Player(new Deck(cards), 2, 2, 2);
+    }
+    public static Player EnemyTutorial4()
+    {
+        List<CardData> cards = new List<CardData> { Reaver(), Spy(), Warlock() };
+        return new Player(new Deck(cards), 2, 2, 0);
+    }
+    public static List<CardAbility> InventoryTutorial4()
+    {
+        List<CardAbility> abilities = new List<CardAbility>
+        {
+            new CardAbility("Familiar", 2),
+            new CardAbility("Luck", 6, new List<int>{5 })
+        };
+        return abilities;
+    }
 }

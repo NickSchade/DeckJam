@@ -14,8 +14,9 @@ public class CardData
     public int _baseInitiative;
    
     public List<CardAbility> _baseAbilities;
+    public CardAbility[] _slottedAbilities;
 
-    public CardData(string name, Allegiance allegiance, int initiative, int hp, List<CardAbility> abilities)
+    public CardData(string name, Allegiance allegiance, int initiative, int hp, List<CardAbility> abilities, CardAbility[] slottedAbilities)
     {
         _name = name;
         _allegiance = allegiance;
@@ -23,7 +24,7 @@ public class CardData
         _baseHp = hp;
         
         _baseAbilities = abilities;
-
+        _slottedAbilities = slottedAbilities;
     }
     public void Reset()
     {
@@ -41,10 +42,13 @@ public class CardData
     {
         List<CardAbility> abilities = new List<CardAbility>();
         foreach (CardAbility ability in _baseAbilities)
-        {
             abilities.Add(ability.Copy());
-        }
-        return new CardData(_name, _allegiance, _baseInitiative, _baseHp, abilities);
+        
+        CardAbility[] slotted = new CardAbility[_slottedAbilities.Length];
+        for (int i = 0; i < _slottedAbilities.Length; i++)
+            slotted[i] = _slottedAbilities[i];
+
+        return new CardData(_name, _allegiance, _baseInitiative, _baseHp, abilities, slotted);
     }
     
     public void TakeTurn(CardObject parent)

@@ -29,7 +29,7 @@ public class CardAbility
     }
     CardObject GetTarget(CardObject parent)
     {
-        return parent._data._allegiance == Allegiance.Player ? parent._gameManager._enemyTray.GetLastLivingCard() : parent._gameManager._playerTray.GetLastLivingCard();
+        return parent._data._allegiance == Allegiance.Player ? parent._gameManager._battle._enemyTray.GetLastLivingCard() : parent._gameManager._battle._playerTray.GetLastLivingCard();
     }
     public void UseAbility(CardObject parent)
     {
@@ -42,12 +42,13 @@ public class CardAbility
         if (target == null)
             return;
 
-        UseAbilityOnTarget(target);
+        UseAbilityOnTarget(parent, target);
     }
 
-    void UseAbilityOnTarget(CardObject target)
+    void UseAbilityOnTarget(CardObject parent, CardObject target)
     {
         target._data.TakeDamage(GetAttack());
+        target._gameManager._cardAnimator.AddAttackAnimation(target, parent._abilities[this], Color.red);
         target.UpdateCard();
     }
 }

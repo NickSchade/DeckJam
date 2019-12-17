@@ -9,11 +9,21 @@ public class TutorialMessage : MonoBehaviour
     public GameManager _gameManager;
     public TMP_Text _text;
 
-    public void SetText(string text)
+    GameScreen _screen;
+    Player _player;
+    Player _enemy;
+    List<CardAbility> _inventory;
+    
+    public void SetMessage(string text, GameScreen screen, Player player, Player enemy = null, List<CardAbility> inventory = null)
     {
         gameObject.SetActive(true);
         _gameManager._StartScreen.gameObject.SetActive(false);
         _text.text = text;
+
+        _screen = screen;
+        _player = player;
+        _enemy = enemy;
+        _inventory = inventory;
     }
 
     public void Update()
@@ -21,9 +31,18 @@ public class TutorialMessage : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Return))
         {
             gameObject.SetActive(false);
-            _gameManager._GameScreen.SetActive(true);
 
-            _gameManager.BeginMatch(_gameManager._player, _gameManager._enemy);
+            if (_screen == GameScreen.Battle)
+            {
+                _gameManager._battle.gameObject.SetActive(true);
+                _gameManager._battle.BeginMatch(_player, _enemy);
+            }
+            else if (_screen == GameScreen.DeckManage)
+            {
+                _gameManager._deckManager.gameObject.SetActive(true);
+                _gameManager._deckManager.BeginManagement(_player, _inventory);
+            }
+
         }
 
     }

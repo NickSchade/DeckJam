@@ -30,6 +30,80 @@ public class CardMover : MonoBehaviour
     void Update()
     {
         ProcessDiscreteClicks();
+        //ProcessDrag();
+    }
+
+    void StartDrag(CardObject c)
+    {
+        if (c == null || c._locked) return;
+
+        _card = c;
+    }
+    void EndCardDrag()
+    {
+        if (_card == null) return;
+
+        _card.transform.localPosition = Vector3.zero; 
+    }
+    void EndDrag(CardObject c, CardSlot s)
+    {
+        Debug.Log("Ending Drag");
+        if (_card != null &&
+                s != null &&
+                s._tray != _gameManager._battle._enemyTray)
+        {
+            if (c == _card)
+                PlaceCardInEmptySlot(s);
+            else
+                SwapCards(c);
+        }
+        else
+        {
+            EndCardDrag();
+        }
+    }
+    void StartCard(CardObject c)
+    {
+        if (c != null && c._slot._tray != _gameManager._battle._enemyTray)
+        {
+            if (_card != c)
+                SelectCard(c);
+            else
+                DeselectCard(c);
+        }
+    }
+    
+    void EndCard(CardObject c, CardSlot s)
+    {
+        if (_card != null &&
+                s != null &&
+                s._tray != _gameManager._battle._enemyTray)
+        {
+            if (c == _card)
+                DeselectCard(c);
+            else if (c == null)
+                PlaceCardInEmptySlot(s);
+            else
+                SwapCards(c);
+        }
+    }
+
+    void ProcessDrag()
+    {
+        if (_card != null)
+            _card.transform.position = Input.mousePosition;
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            CardObject c = GetCardUnderMouse();
+            StartDrag(c);
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            CardObject c = GetCardUnderMouse();
+            CardSlot s = GetSlotUnderMouse();
+            EndDrag(c, s);
+        }
     }
 
     void ProcessDiscreteClicks()
@@ -37,33 +111,14 @@ public class CardMover : MonoBehaviour
         if (Input.GetMouseButtonUp(0))
         {
             CardObject c = GetCardUnderMouse();
-            if (c != null && c._slot._tray != _gameManager._enemyTray)
-            {
-                if (_card != c)
-                    SelectCard(c);
-                else
-                    DeselectCard(c);
-            }
-
+            StartCard(c);
         }
         if (Input.GetMouseButtonUp(1))
         {
             CardObject c = GetCardUnderMouse();
             CardSlot s = GetSlotUnderMouse();
-            if (_card != null &&
-                s != null && 
-                s._tray != _gameManager._enemyTray)
-            {
-                if (c == _card)
-                    DeselectCard(c);
-                else if (c == null)
-                    PlaceCardInEmptySlot(s);
-                else
-                    SwapCards(c);
-            }
-                
-        }
-                
+            EndCard(c, s);
+        }       
     }
 
     void PlaceCardInEmptySlot(CardSlot s)
@@ -74,17 +129,17 @@ public class CardMover : MonoBehaviour
         
         if (oldSlot._tray != s._tray)
         {
-            if (oldSlot._tray == _gameManager._handTray)
-                _gameManager._player._deck.PlayCardFromHand(_card._data);
+            if (oldSlot._tray == _gameManager._battle._handTray)
+                _gameManager._battle._player._deck.PlayCardFromHand(_card._data);
             else
-                _gameManager._player._deck.ReturnCardToHand(_card._data);
+                _gameManager._battle._player._deck.ReturnCardToHand(_card._data);
         }
 
         PlaceCardInSlot(_card, s);
         DeselectCard(_card);
         oldSlot._card = null;
 
-        _gameManager.UpdateUi();
+        _gameManager._battle.UpdateUi();
     }
     
 

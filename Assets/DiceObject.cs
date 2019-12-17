@@ -7,6 +7,7 @@ using TMPro;
 public class DiceObject : MonoBehaviour
 {
     public TMP_Text _text;
+
     public int _value;
     public DiceSlotObject _slot;
     public RawImage _highlight;

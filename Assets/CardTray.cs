@@ -59,4 +59,17 @@ public class CardTray : MonoBehaviour
         targetSlot._card = cardObject;
         cardObject.SetCard(_gameManager, c, targetSlot);
     }
+
+
+    public void DestroySlotsInTray()
+    {
+        for (int i = 0; i < _slots.Count; i++)
+        {
+            if (_slots[i] != null)
+            {
+                Destroy(_slots[i].gameObject);
+                _slots[i] = null;
+            }
+        }
+    }
 }
